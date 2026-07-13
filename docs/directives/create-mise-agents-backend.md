@@ -35,12 +35,12 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 - Replace template placeholders and example hook bodies with the minimal backend implementation.
 - Add one self-contained Lua hook test, a live mise smoke task, and a local `skills:add` task.
 - Document supported tools, prerequisites, usage, skills commands, development checks, and Cursor platform limits.
-- Preserve `docs/mise-agents.md` and `gnosis.toml`; add only this directive under `docs/directives/`.
+- Preserve `docs/purpose.md` and `gnosis.toml`; add only this directive under `docs/directives/`.
 
 # Implementation plan
 
 ### Task 1: Adopt and minimize the official template
-**Load:** `/tmp/mise-backend-plugin-template` at `8b8583a677235c7be3bcfc8ff047f3dec4687b2a`; `gnosis://mise-agents/mise-agents.md`; `gnosis://core/procedures/development/implementing-directive.md`.
+**Load:** `/tmp/mise-backend-plugin-template` at `8b8583a677235c7be3bcfc8ff047f3dec4687b2a`; `gnosis://mise-agents/purpose.md`; `gnosis://core/procedures/development/implementing-directive.md`.
 **Files:** create `.github/workflows/ci.yml`, `.luarc.json`, `LICENSE`, `README.md`, `hk.pkl`, `hooks/backend_exec_env.lua`, `hooks/backend_install.lua`, `hooks/backend_list_versions.lua`, `metadata.lua`, `mise-tasks/test`, `mise.toml`, `stylua.toml`, `types/mise-plugin.lua`.
 **Interfaces:** preserve the template's `PLUGIN:BackendListVersions(ctx)`, `PLUGIN:BackendInstall(ctx)`, and `PLUGIN:BackendExecEnv(ctx)` hook signatures.
 
