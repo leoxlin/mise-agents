@@ -3,3 +3,17 @@
 set -euo pipefail
 
 lua tests/hooks.lua
+
+root="$(pwd)"
+tmp="$(mktemp -d)"
+trap 'rm -rf "${tmp}"' EXIT
+export MISE_DATA_DIR="${tmp}/data"
+export MISE_CACHE_DIR="${tmp}/cache"
+export MISE_STATE_DIR="${tmp}/state"
+
+mise plugin link --force agents "${root}"
+test -n "$(mise ls-remote agents:skills)"
+mise install agents:skills@latest
+mise exec agents:skills@latest -- skills --help | grep -q "add <package>"
+
+echo "live smoke: ok"

@@ -1,5 +1,74 @@
 # mise-agents
 
-A mise backend plugin for versioned coding agents and the Skills CLI.
+A [mise backend plugin](https://mise.jdx.dev/backend-plugin-development.html) for reproducible coding-agent and skill tooling.
 
-Implementation and usage documentation will be completed with the backend hooks.
+## Supported tools
+
+| mise tool | Upstream package/source | Commands |
+| --- | --- | --- |
+| `agents:codex` | `@openai/codex` | `codex` |
+| `agents:claude` | `@anthropic-ai/claude-code` | `claude` |
+| `agents:kimi` | `@moonshot-ai/kimi-code` | `kimi` |
+| `agents:pi` | `@mariozechner/pi-coding-agent` | `pi` |
+| `agents:cursor` | Cursor's official Agent archive | `agent`, `cursor-agent` |
+| `agents:skills` | `skills` from Vercel Labs | `skills`, `add-skill` |
+
+The npm-backed tools require Node.js and npm. Kimi currently requires Node.js 22.19 or newer; Node.js 24 is the development and CI version used here. Cursor supports Linux and macOS on x64 and arm64.
+
+Cursor's installer exposes only its current immutable build, so `mise ls-remote agents:cursor` returns one version. Previously known exact versions remain installable while Cursor retains their archives.
+
+## Install and use
+
+Link a checkout for local use:
+
+```sh
+mise plugin link --force agents /path/to/mise-agents
+mise use -g node@24
+```
+
+Then manage tools with normal mise commands:
+
+```sh
+mise ls-remote agents:codex
+mise install agents:codex@latest
+mise use agents:codex@latest
+mise exec agents:codex@latest -- codex --version
+mise upgrade agents:codex
+mise uninstall agents:codex@0.144.3
+```
+
+The same `agents:<tool>@<version>` form works for every tool in the table.
+
+## Skills
+
+`agents:skills` versions the [Skills CLI](https://github.com/vercel-labs/skills). The CLI itself manages project or global skills with the same interface used by `npx skills`:
+
+```sh
+mise use agents:skills@latest
+skills add vercel-labs/agent-skills
+skills list
+skills find typescript
+skills update
+skills remove
+```
+
+To avoid selecting it first:
+
+```sh
+mise exec agents:skills@latest -- skills add vercel-labs/agent-skills
+```
+
+This plugin versions the Skills CLI; it does not author, host, or reinterpret individual skills.
+
+## Development
+
+The repository is based on [`jdx/mise-backend-plugin-template`](https://github.com/jdx/mise-backend-plugin-template).
+
+```sh
+mise install
+mise run test
+mise run lint
+mise run ci
+```
+
+The live smoke test uses temporary mise data, cache, and state directories, so it does not replace locally installed plugins.
