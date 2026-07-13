@@ -2,7 +2,7 @@
 type: Directive
 title: create-mise-agents-backend
 description: Create a mise backend plugin that versions five coding agents and installs local skills with npx.
-status: open
+status: done
 ---
 
 # Goal
@@ -47,7 +47,7 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 - [ ] Copy every non-`.git` template file, retain the template tooling/types, and replace metadata with backend name `agents`, version `0.1.0`, author `mise-agents contributors`, MIT license, and no invented homepage.
 - [ ] Reduce README and hook files to implementation-relevant content; remove every `<BACKEND>`, `<GITHUB_USER>`, and `<TEST_TOOL>` placeholder.
 - [ ] Add Node.js 24 to `mise.toml` because all npm-backed tools share it and Kimi requires Node 22.19 or newer.
-- [ ] Run `rg '<BACKEND>|<GITHUB_USER>|<TEST_TOOL>'`; expect no matches.
+- [ ] Run `rg '<BACKEND>|<GITHUB_USER>|<TEST_TOOL>' --glob '!docs/directives/**'`; expect no matches.
 - [ ] Commit: `chore: adopt mise backend plugin template`.
 
 ### Task 2: Add a failing hook contract check
@@ -95,10 +95,16 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 
 # Acceptance criteria
 
-- The repository is recognizably based on the requested official template revision and contains no template placeholders — inspect copied tooling files and run `rg '<BACKEND>|<GITHUB_USER>|<TEST_TOOL>'`; expect no matches.
+- The repository is recognizably based on the requested official template revision and contains no template placeholders — inspect copied tooling files and run `rg '<BACKEND>|<GITHUB_USER>|<TEST_TOOL>' --glob '!docs/directives/**'`; expect no matches.
 - `agents:codex`, `agents:claude`, `agents:kimi`, and `agents:pi` list and install versions from their fixed official npm package mappings — run `lua tests/hooks.lua` and `mise ls-remote agents:pi`; expect green assertions and non-empty versions.
 - `agents:cursor` resolves Cursor's current immutable build and constructs the official target-specific archive install without modifying the user's home directory — run `lua tests/hooks.lua`; expect Cursor version, URL, extraction, alias, and PATH assertions to pass.
 - Unknown tools and unsafe versions fail before command/download execution — run `lua tests/hooks.lua`; expect rejection assertions with zero side effects.
 - Skills themselves are installed from a local skill repository without a backend-managed CLI — inspect `mise.toml` for `run = "npx skills add ."` and run `mise run skills:add` from a valid skill source; expect the Skills CLI add flow.
 - Documentation enables a new user to install all five managed agents and add local skills without consulting source — inspect `README.md` for prerequisites, mapping, examples, and limitations.
 - All repository and vault checks are clean — run `mise run ci`, `gnosis validate`, and `git diff --check`; expect exit 0.
+
+# Completion evidence
+
+- `mise run ci` passed full-file LuaLS, StyLua, actionlint, hook assertions, and an isolated live `agents:pi@0.73.1` install/execution on 2026-07-13.
+- `mise tasks` exposes `skills:add` as `npx skills add .`; no `agents:skills` backend route remains.
+- `gnosis validate`, `git diff --check`, and the placeholder scan passed on the completed tree.
