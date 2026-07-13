@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Run backend plugin tests"
+set -euo pipefail
+
+lua tests/hooks.lua
