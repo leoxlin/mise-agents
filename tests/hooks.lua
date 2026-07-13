@@ -77,6 +77,16 @@ local versions = list:BackendListVersions({ tool = "skills" }).versions
 assert(versions[1] == "1.0.0" and versions[2] == "2.0.0")
 assert(calls.commands[1]:match("npm view") and calls.commands[1]:match("skills"))
 
+for tool, package in pairs({
+    codex = "@openai/codex",
+    claude = "@anthropic-ai/claude-code",
+    kimi = "@moonshot-ai/kimi-code",
+    pi = "@mariozechner/pi-coding-agent",
+}) do
+    assert(#list:BackendListVersions({ tool = tool }).versions == 2)
+    assert(calls.commands[#calls.commands]:find(package, 1, true))
+end
+
 local cursor_versions = list:BackendListVersions({ tool = "cursor" }).versions
 assert(cursor_versions[1] == "2026.07.09-a3815c0")
 assert(calls.gets[1] == "https://cursor.com/install")
@@ -98,18 +108,43 @@ expect_error(function()
     install:BackendInstall({ tool = "codex", version = "1.0;touch nope", install_path = "/tmp/agent" })
 end, "Invalid version")
 assert(#calls.commands == before)
+expect_error(function()
+    install:BackendInstall({ tool = "other", version = "1.0.0", install_path = "/tmp/agent" })
+end, "Unsupported tool")
+assert(#calls.commands == before)
 
 install:BackendInstall({ tool = "cursor", version = "2026.07.09-a3815c0", install_path = "/tmp/cursor" })
-assert(calls.downloads[1].url == "https://downloads.cursor.com/lab/2026.07.09-a3815c0/linux/x64/agent-cli-package.tar.gz")
+assert(
+    calls.downloads[1].url == "https://downloads.cursor.com/lab/2026.07.09-a3815c0/linux/x64/agent-cli-package.tar.gz"
+)
 assert(calls.downloads[1].path == "/tmp/cursor/cursor-agent.tar.gz")
 assert(calls.decompress[1].archive == calls.downloads[1].path)
 assert(calls.decompress[1].dest == "/tmp/cursor")
 assert(calls.symlinks[1].src == "/tmp/cursor/dist-package/cursor-agent")
 assert(calls.symlinks[1].dst == "/tmp/cursor/dist-package/agent")
 
+RUNTIME = { osType = "macOS", archType = "arm64" }
+install:BackendInstall({ tool = "cursor", version = "2026.07.09-a3815c0", install_path = "/tmp/cursor-mac" })
+assert(
+    calls.downloads[2].url
+        == "https://downloads.cursor.com/lab/2026.07.09-a3815c0/darwin/arm64/agent-cli-package.tar.gz"
+)
+RUNTIME = { osType = "Windows", archType = "amd64" }
+before = #calls.commands
+expect_error(function()
+    install:BackendInstall({ tool = "cursor", version = "2026.07.09-a3815c0", install_path = "/tmp/cursor" })
+end, "Unsupported Cursor operating system")
+assert(#calls.commands == before)
+
 local env = load_hook("hooks/backend_exec_env.lua")
-assert(env:BackendExecEnv({ tool = "skills", install_path = "/tmp/skills" }).env_vars[1].value == "/tmp/skills/node_modules/.bin")
-assert(env:BackendExecEnv({ tool = "cursor", install_path = "/tmp/cursor" }).env_vars[1].value == "/tmp/cursor/dist-package")
+assert(
+    env:BackendExecEnv({ tool = "skills", install_path = "/tmp/skills" }).env_vars[1].value
+        == "/tmp/skills/node_modules/.bin"
+)
+assert(
+    env:BackendExecEnv({ tool = "cursor", install_path = "/tmp/cursor" }).env_vars[1].value
+        == "/tmp/cursor/dist-package"
+)
 expect_error(function()
     env:BackendExecEnv({ tool = "other", install_path = "/tmp/other" })
 end, "Unsupported tool")
