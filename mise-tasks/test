@@ -12,8 +12,8 @@ export MISE_CACHE_DIR="${tmp}/cache"
 export MISE_STATE_DIR="${tmp}/state"
 
 mise plugin link --force agents "${root}"
-test -n "$(mise ls-remote agents:skills)"
-mise install agents:skills@latest
-mise exec agents:skills@latest -- skills --help | grep -q "add <package>"
+test -n "$(mise ls-remote agents:pi)"
+mise install agents:pi@latest
+mise exec agents:pi@latest -- pi --version
 
 echo "live smoke: ok"

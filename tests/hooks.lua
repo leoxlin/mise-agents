@@ -73,10 +73,6 @@ local function expect_error(fn, pattern)
 end
 
 local list = load_hook("hooks/backend_list_versions.lua")
-local versions = list:BackendListVersions({ tool = "skills" }).versions
-assert(versions[1] == "1.0.0" and versions[2] == "2.0.0")
-assert(calls.commands[1]:match("npm view") and calls.commands[1]:match("skills"))
-
 for tool, package in pairs({
     codex = "@openai/codex",
     claude = "@anthropic-ai/claude-code",
@@ -86,6 +82,10 @@ for tool, package in pairs({
     assert(#list:BackendListVersions({ tool = tool }).versions == 2)
     assert(calls.commands[#calls.commands]:find(package, 1, true))
 end
+
+expect_error(function()
+    list:BackendListVersions({ tool = "skills" })
+end, "Unsupported tool")
 
 local cursor_versions = list:BackendListVersions({ tool = "cursor" }).versions
 assert(cursor_versions[1] == "2026.07.09-a3815c0")
@@ -138,15 +138,18 @@ assert(#calls.commands == before)
 
 local env = load_hook("hooks/backend_exec_env.lua")
 assert(
-    env:BackendExecEnv({ tool = "skills", install_path = "/tmp/skills" }).env_vars[1].value
-        == "/tmp/skills/node_modules/.bin"
+    env:BackendExecEnv({ tool = "pi", version = "1.0.0", install_path = "/tmp/pi" }).env_vars[1].value
+        == "/tmp/pi/node_modules/.bin"
 )
 assert(
-    env:BackendExecEnv({ tool = "cursor", install_path = "/tmp/cursor" }).env_vars[1].value
+    env:BackendExecEnv({ tool = "cursor", version = "1.0.0", install_path = "/tmp/cursor" }).env_vars[1].value
         == "/tmp/cursor/dist-package"
 )
 expect_error(function()
-    env:BackendExecEnv({ tool = "other", install_path = "/tmp/other" })
+    env:BackendExecEnv({ tool = "other", version = "1.0.0", install_path = "/tmp/other" })
+end, "Unsupported tool")
+expect_error(function()
+    env:BackendExecEnv({ tool = "skills", version = "1.0.0", install_path = "/tmp/skills" })
 end, "Unsupported tool")
 
 print("hooks: ok")

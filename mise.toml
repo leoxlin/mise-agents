@@ -13,11 +13,15 @@ run = "stylua metadata.lua hooks/ tests/"
 
 [tasks.lint]
 description = "Lint Lua scripts and GitHub Actions using hk"
-run = "hk check"
+run = "hk check --all"
 
 [tasks.lint-fix]
 description = "Fix linting issues"
 run = "hk fix"
+
+[tasks."skills:add"]
+description = "Install skills from the current repository"
+run = "npx skills add ."
 
 [tasks.ci]
 description = "Run all CI checks"

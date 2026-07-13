@@ -3,7 +3,6 @@ local npm_tools = {
     claude = true,
     kimi = true,
     pi = true,
-    skills = true,
 }
 
 --- @param ctx BackendExecEnvCtx

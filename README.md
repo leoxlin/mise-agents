@@ -11,7 +11,6 @@ A [mise backend plugin](https://mise.jdx.dev/backend-plugin-development.html) fo
 | `agents:kimi` | `@moonshot-ai/kimi-code` | `kimi` |
 | `agents:pi` | `@mariozechner/pi-coding-agent` | `pi` |
 | `agents:cursor` | Cursor's official Agent archive | `agent`, `cursor-agent` |
-| `agents:skills` | `skills` from Vercel Labs | `skills`, `add-skill` |
 
 The npm-backed tools require Node.js and npm. Kimi currently requires Node.js 22.19 or newer; Node.js 24 is the development and CI version used here. Cursor supports Linux and macOS on x64 and arm64.
 
@@ -41,24 +40,19 @@ The same `agents:<tool>@<version>` form works for every tool in the table.
 
 ## Skills
 
-`agents:skills` versions the [Skills CLI](https://github.com/vercel-labs/skills). The CLI itself manages project or global skills with the same interface used by `npx skills`:
+Skills themselves are managed by the [Skills CLI](https://github.com/vercel-labs/skills); this plugin does not install or version that CLI. From a local skill repository, run:
 
 ```sh
-mise use agents:skills@latest
-skills add vercel-labs/agent-skills
-skills list
-skills find typescript
-skills update
-skills remove
+npx skills add .
 ```
 
-To avoid selecting it first:
+The repository-local mise task runs the same command:
 
 ```sh
-mise exec agents:skills@latest -- skills add vercel-labs/agent-skills
+mise run skills:add
 ```
 
-This plugin versions the Skills CLI; it does not author, host, or reinterpret individual skills.
+The task hands the current directory to `npx skills`; it does not author, host, or reinterpret skill content.
 
 ## Development
 

@@ -1,19 +1,19 @@
 ---
 type: Directive
 title: create-mise-agents-backend
-description: Create a mise backend plugin that versions five coding agents and the Skills CLI.
+description: Create a mise backend plugin that versions five coding agents and installs local skills with npx.
 status: open
 ---
 
 # Goal
 
-Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-template` revision `8b8583a677235c7be3bcfc8ff047f3dec4687b2a`, that lets mise list, install, select, update, and uninstall reproducible versions of Codex, Claude Code, Kimi Code, Pi, Cursor Agent, and the Skills CLI.
+Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-template` revision `8b8583a677235c7be3bcfc8ff047f3dec4687b2a`, that lets mise list, install, select, update, and uninstall reproducible versions of Codex, Claude Code, Kimi Code, Pi, and Cursor Agent, while local skill content is installed with `npx skills add .`.
 
 # Architecture
 
-- Map `codex`, `claude`, `kimi`, `pi`, and `skills` to their official npm packages in one small shared table. Use npm itself for authoritative version lists and prefix-local installation, exposing `<install_path>/node_modules/.bin`.
+- Map `codex`, `claude`, `kimi`, and `pi` to their official npm packages in one small shared table. Use npm itself for authoritative version lists and prefix-local installation, exposing `<install_path>/node_modules/.bin`.
 - Treat `cursor` as the sole non-npm tool. Read its current immutable build identifier from Cursor's official installer, download the matching official OS/architecture archive, extract it under the mise install path, and expose both `cursor-agent` and `agent`. The upstream installer publishes only the current build; exact previously known pins remain constructible while Cursor retains their archives, but remote listing is current-only.
-- `agents:skills` versions the official `skills` CLI. Skill add/list/update/remove remains delegated to that CLI, preserving `npx skills` semantics and the project boundary against authoring or hosting skills.
+- Do not expose an `agents:skills` tool. Install skill content from its local repository with the author's exact `npx skills add .` workflow, available directly and as the `mise run skills:add` convenience task.
 
 # Tech stack
 
@@ -23,7 +23,7 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 
 # Global constraints
 
-- Support only `codex`, `claude`, `kimi`, `pi`, `cursor`, and `skills`; reject unknown tool names before network or shell work.
+- Support only `codex`, `claude`, `kimi`, `pi`, and `cursor`; reject unknown tool names, including `skills`, before network or shell work.
 - Use upstream package/archive version strings unchanged and install only inside `ctx.install_path`.
 - Do not manage agent configuration, sessions, prompts, credentials, or individual skill repositories.
 - Quote every shell-derived path/version passed to npm and validate version characters before command execution.
@@ -33,7 +33,7 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 
 - Copy the current official template's plugin/tooling files into the repository without its `.git` directory.
 - Replace template placeholders and example hook bodies with the minimal backend implementation.
-- Add one self-contained Lua hook test and a live mise smoke task.
+- Add one self-contained Lua hook test, a live mise smoke task, and a local `skills:add` task.
 - Document supported tools, prerequisites, usage, skills commands, development checks, and Cursor platform limits.
 - Preserve `docs/mise-agents.md` and `gnosis.toml`; add only this directive under `docs/directives/`.
 
@@ -60,7 +60,7 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 - [ ] Commit: `test: define agents backend contract`.
 
 ### Task 3: Implement version listing, installation, and environments
-**Load:** `tests/hooks.lua`; `hooks/*.lua`; official npm metadata for `@openai/codex`, `@anthropic-ai/claude-code`, `@moonshot-ai/kimi-code`, `@mariozechner/pi-coding-agent`, and `skills`; Cursor installer/archive observed 2026-07-13.
+**Load:** `tests/hooks.lua`; `hooks/*.lua`; official npm metadata for `@openai/codex`, `@anthropic-ai/claude-code`, `@moonshot-ai/kimi-code`, and `@mariozechner/pi-coding-agent`; Cursor installer/archive observed 2026-07-13.
 **Files:** modify `hooks/backend_list_versions.lua`, `hooks/backend_install.lua`, `hooks/backend_exec_env.lua`.
 **Interfaces:** `BackendListVersions -> {versions=string[]}`; `BackendInstall -> {}`; `BackendExecEnv -> {env_vars={{key="PATH",value=string}}}`.
 
@@ -69,17 +69,18 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 - [ ] In exec env, return npm's `node_modules/.bin` for mapped tools and Cursor's `dist-package` for Cursor; reject unsupported names consistently.
 - [ ] Run `lua tests/hooks.lua`; expect all assertions and the final success line (green).
 - [ ] Run `stylua metadata.lua hooks/ tests/`; expect exit 0, then rerun `lua tests/hooks.lua`; expect green after refactor.
-- [ ] Commit: `feat: manage agents and skills with mise`.
+- [ ] Commit: `feat: manage agents with mise`.
 
 ### Task 4: Add live smoke coverage and documentation
 **Load:** implemented hooks; template `mise-tasks/test`; current `README.md`.
 **Files:** modify `mise-tasks/test`, `mise.toml`, `README.md`.
 **Interfaces:** developer commands `mise run test`, `mise run lint`, and `mise run ci`; user syntax `agents:<tool>@<version>`.
 
-- [ ] Make `mise run test` first run `lua tests/hooks.lua`, then use temporary `MISE_DATA_DIR`, `MISE_CACHE_DIR`, and `MISE_STATE_DIR` locations to link `agents` without changing the user's plugin/cache state, verify `mise ls-remote agents:skills` is non-empty, install `agents:skills@latest`, and run `mise exec agents:skills@latest -- skills --help`.
-- [ ] Document installation/linking, six tool IDs, package/source mapping, examples, npm/Node prerequisites, Cursor target support and current-only remote listing, `skills add/list/check/update/remove`, and development checks.
-- [ ] Run `mise run test`; expect unit success, a non-empty Skills CLI version list, successful installation, and help output.
-- [ ] Commit: `docs: document agents and skills workflows`.
+- [ ] Make `mise run test` first run `lua tests/hooks.lua`, then use temporary `MISE_DATA_DIR`, `MISE_CACHE_DIR`, and `MISE_STATE_DIR` locations to link `agents` without changing the user's plugin/cache state, verify `mise ls-remote agents:pi` is non-empty, install `agents:pi@latest`, and run `mise exec agents:pi@latest -- pi --version`.
+- [ ] Add `mise run skills:add` as the exact `npx skills add .` convenience task; do not install or version the Skills CLI as a backend tool.
+- [ ] Document installation/linking, five tool IDs, package/source mapping, examples, npm/Node prerequisites, Cursor target support and current-only remote listing, `npx skills add .`, and development checks.
+- [ ] Run `mise run test`; expect unit success, a non-empty Pi version list, successful installation, and version output.
+- [ ] Commit: `docs: document agent and skill workflows`.
 
 ### Task 5: Complete quality and scope verification
 **Load:** repository diff from `05eb99c0361e1deaf02c4d2bb85237fd7e6acff1`; all directive acceptance criteria.
@@ -95,9 +96,9 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 # Acceptance criteria
 
 - The repository is recognizably based on the requested official template revision and contains no template placeholders — inspect copied tooling files and run `rg '<BACKEND>|<GITHUB_USER>|<TEST_TOOL>'`; expect no matches.
-- `agents:codex`, `agents:claude`, `agents:kimi`, `agents:pi`, and `agents:skills` list and install versions from their fixed official npm package mappings — run `lua tests/hooks.lua` and `mise ls-remote agents:skills`; expect green assertions and non-empty versions.
+- `agents:codex`, `agents:claude`, `agents:kimi`, and `agents:pi` list and install versions from their fixed official npm package mappings — run `lua tests/hooks.lua` and `mise ls-remote agents:pi`; expect green assertions and non-empty versions.
 - `agents:cursor` resolves Cursor's current immutable build and constructs the official target-specific archive install without modifying the user's home directory — run `lua tests/hooks.lua`; expect Cursor version, URL, extraction, alias, and PATH assertions to pass.
 - Unknown tools and unsafe versions fail before command/download execution — run `lua tests/hooks.lua`; expect rejection assertions with zero side effects.
-- The installed Skills CLI provides native skill management — run `mise exec agents:skills@latest -- skills --help`; expect successful help output containing add/list/check/update/remove commands.
-- Documentation enables a new user to install all six managed tools and operate skills without consulting source — inspect `README.md` for prerequisites, mapping, examples, and limitations.
+- Skills themselves are installed from a local skill repository without a backend-managed CLI — inspect `mise.toml` for `run = "npx skills add ."` and run `mise run skills:add` from a valid skill source; expect the Skills CLI add flow.
+- Documentation enables a new user to install all five managed agents and add local skills without consulting source — inspect `README.md` for prerequisites, mapping, examples, and limitations.
 - All repository and vault checks are clean — run `mise run ci`, `gnosis validate`, and `git diff --check`; expect exit 0.
