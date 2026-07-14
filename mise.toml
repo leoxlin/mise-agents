@@ -19,10 +19,6 @@ run = "hk check --all"
 description = "Fix linting issues"
 run = "hk fix"
 
-[tasks."skills:add"]
-description = "Install skills from the current repository"
-run = "npx skills add ."
-
 [tasks.ci]
 description = "Run all CI checks"
 depends = ["lint", "test"]

@@ -1,6 +1,6 @@
 # mise-agents
 
-A [mise backend plugin](https://mise.jdx.dev/backend-plugin-development.html) for reproducible coding-agent and skill tooling.
+A [mise backend plugin](https://mise.jdx.dev/backend-plugin-development.html) for reproducible coding-agent tooling.
 
 ## Supported tools
 
@@ -37,22 +37,6 @@ mise uninstall agents:codex@0.144.3
 ```
 
 The same `agents:<tool>@<version>` form works for every tool in the table.
-
-## Skills
-
-Skills themselves are managed by the [Skills CLI](https://github.com/vercel-labs/skills); this plugin does not install or version that CLI. From a local skill repository, run:
-
-```sh
-npx skills add .
-```
-
-The repository-local mise task runs the same command:
-
-```sh
-mise run skills:add
-```
-
-The task hands the current directory to `npx skills`; it does not author, host, or reinterpret skill content.
 
 ## Development
 
