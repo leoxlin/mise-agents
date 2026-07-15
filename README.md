@@ -9,10 +9,10 @@ A [mise backend plugin](https://mise.jdx.dev/backend-plugin-development.html) fo
 | `agents:codex` | `@openai/codex` | `codex` |
 | `agents:claude` | `@anthropic-ai/claude-code` | `claude` |
 | `agents:kimi` | `@moonshot-ai/kimi-code` | `kimi` |
-| `agents:pi` | `@mariozechner/pi-coding-agent` | `pi` |
+| `agents:pi` | `@earendil-works/pi-coding-agent` | `pi` |
 | `agents:cursor` | Cursor's official Agent archive | `agent`, `cursor-agent` |
 
-The npm-backed tools require Node.js and npm. Kimi currently requires Node.js 22.19 or newer; Node.js 24 is the development and CI version used here. Cursor supports Linux and macOS on x64 and arm64.
+The npm-backed tools require Node.js and npm. Kimi and Pi currently require Node.js 22.19 or newer; Node.js 24 is the development and CI version used here. Cursor supports Linux and macOS on x64 and arm64.
 
 Cursor's installer exposes only its current immutable build, so `mise ls-remote agents:cursor` returns one version. Previously known exact versions remain installable while Cursor retains their archives.
 

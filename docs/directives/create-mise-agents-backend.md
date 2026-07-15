@@ -58,7 +58,7 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 - [ ] Commit: `test: define agents backend contract`.
 
 ### Task 3: Implement version listing, installation, and environments
-**Load:** `tests/hooks.lua`; `hooks/*.lua`; official npm metadata for `@openai/codex`, `@anthropic-ai/claude-code`, `@moonshot-ai/kimi-code`, and `@mariozechner/pi-coding-agent`; Cursor installer/archive observed 2026-07-13.
+**Load:** `tests/hooks.lua`; `hooks/*.lua`; official npm metadata for `@openai/codex`, `@anthropic-ai/claude-code`, `@moonshot-ai/kimi-code`, and `@earendil-works/pi-coding-agent`; Cursor installer/archive observed 2026-07-13.
 **Files:** modify `hooks/backend_list_versions.lua`, `hooks/backend_install.lua`, `hooks/backend_exec_env.lua`.
 **Interfaces:** `BackendListVersions -> {versions=string[]}`; `BackendInstall -> {}`; `BackendExecEnv -> {env_vars={{key="PATH",value=string}}}`.
 

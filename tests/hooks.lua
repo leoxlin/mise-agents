@@ -77,7 +77,7 @@ for tool, package in pairs({
     codex = "@openai/codex",
     claude = "@anthropic-ai/claude-code",
     kimi = "@moonshot-ai/kimi-code",
-    pi = "@mariozechner/pi-coding-agent",
+    pi = "@earendil-works/pi-coding-agent",
 }) do
     assert(#list:BackendListVersions({ tool = tool }).versions == 2)
     assert(calls.commands[#calls.commands]:find(package, 1, true))

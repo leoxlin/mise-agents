@@ -2,7 +2,7 @@ local packages = {
     codex = "@openai/codex",
     claude = "@anthropic-ai/claude-code",
     kimi = "@moonshot-ai/kimi-code",
-    pi = "@mariozechner/pi-coding-agent",
+    pi = "@earendil-works/pi-coding-agent",
 }
 
 local function shell_quote(value)
