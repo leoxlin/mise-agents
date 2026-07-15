@@ -18,10 +18,10 @@ Cursor's installer exposes only its current immutable build, so `mise ls-remote 
 
 ## Install and use
 
-Link a checkout for local use:
+Install the plugin from GitHub and its Node.js prerequisite:
 
 ```sh
-mise plugin link --force agents /path/to/mise-agents
+mise plugin install agents https://github.com/leoxlin/mise-agents
 mise use -g node@24
 ```
 
@@ -43,6 +43,7 @@ The same `agents:<tool>@<version>` form works for every tool in the table.
 The repository is based on [`jdx/mise-backend-plugin-template`](https://github.com/jdx/mise-backend-plugin-template).
 
 ```sh
+mise plugin link --force agents /path/to/mise-agents
 mise install
 mise run test
 mise run lint
