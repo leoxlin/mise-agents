@@ -1,7 +1,0 @@
-[vault]
-vault_name = "mise-agents"
-vault_root = "docs"
-link_format = "relative"
-link_format_strict = true
-vault_index = false
-vault_log = false
