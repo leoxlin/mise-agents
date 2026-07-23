@@ -6,8 +6,12 @@
 ---@field pluginDirPath string
 RUNTIME = {}
 
+---@class BackendOptions
+---@field source string
+
 ---@class BackendListVersionsCtx
 ---@field tool string
+---@field options? BackendOptions
 
 ---@class BackendListVersionsResult
 ---@field versions string[]
@@ -16,6 +20,7 @@ RUNTIME = {}
 ---@field tool string
 ---@field version string
 ---@field install_path string
+---@field options? BackendOptions
 
 ---@class BackendInstallResult
 
@@ -23,6 +28,7 @@ RUNTIME = {}
 ---@field tool string
 ---@field version string
 ---@field install_path string
+---@field options? BackendOptions
 
 ---@class EnvKey
 ---@field key string

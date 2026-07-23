@@ -2,18 +2,87 @@
 #MISE description="Run backend plugin tests"
 set -euo pipefail
 
-lua tests/hooks.lua
-
 root="$(pwd)"
+(cd "${root}/plugins/agents" && lua tests/hooks.lua)
+(cd "${root}/plugins/skills" && lua tests/hooks.lua)
+
 tmp="$(mktemp -d)"
 trap 'rm -rf "${tmp}"' EXIT
-export MISE_DATA_DIR="${tmp}/data"
-export MISE_CACHE_DIR="${tmp}/cache"
-export MISE_STATE_DIR="${tmp}/state"
+unset MISE_CONFIG_FILE MISE_CONFIG_FILENAMES MISE_CONFIG_DIR
+export HOME="${tmp}/home"
+export CODEX_HOME="${tmp}/codex"
+export CLAUDE_CONFIG_DIR="${tmp}/claude"
+export MISE_DATA_DIR="${tmp}/mise/data"
+export MISE_CACHE_DIR="${tmp}/mise/cache"
+export MISE_STATE_DIR="${tmp}/mise/state"
+export MISE_GLOBAL_CONFIG_FILE="${tmp}/mise/global.toml"
+export XDG_CONFIG_HOME="${tmp}/xdg/config"
+export XDG_CACHE_HOME="${tmp}/xdg/cache"
+export XDG_STATE_HOME="${tmp}/xdg/state"
+export MISE_CONFIG_DIR="${XDG_CONFIG_HOME}/mise"
+export MISE_TRUSTED_CONFIG_PATHS="${tmp}/project"
+mkdir -p \
+    "${HOME}" \
+    "${CODEX_HOME}" \
+    "${CLAUDE_CONFIG_DIR}" \
+    "${XDG_CONFIG_HOME}" \
+    "${XDG_CACHE_HOME}" \
+    "${XDG_STATE_HOME}" \
+    "${tmp}/mise" \
+    "${tmp}/project"
+printf '\n' >"${MISE_GLOBAL_CONFIG_FILE}"
 
-mise plugin link --force agents "${root}"
-test -n "$(mise ls-remote agents:pi)"
-mise install agents:pi@latest
-mise exec agents:pi@latest -- pi --version
+printf '%s\n' \
+    '[tools]' \
+    'node = "24"' \
+    '"agents:pi" = "0.80.7"' \
+    '"skills:ponytail" = { version = "v4.8.4", source = "DietrichGebert/ponytail" }' \
+    >"${tmp}/project/mise.toml"
+cd "${tmp}/project"
+
+mise plugin link --force agents "${root}/plugins/agents"
+mise plugin link --force skills "${root}/plugins/skills"
+
+mise install skills:ponytail@v4.8.3
+mise install skills:ponytail@v4.8.4
+old_path="$(mise where skills:ponytail@v4.8.3)/.agents/skills/ponytail"
+new_path="$(mise where skills:ponytail@v4.8.4)/.agents/skills/ponytail"
+
+rm -f \
+    "${CODEX_HOME}/skills/ponytail" \
+    "${CLAUDE_CONFIG_DIR}/skills/ponytail" \
+    "${HOME}/.agents/skills/ponytail" \
+    "${HOME}/.pi/agent/skills/ponytail" \
+    "${HOME}/.cursor/skills/ponytail"
+mkdir -p "${HOME}/.agents/skills/ponytail"
+printf 'keep\n' >"${HOME}/.agents/skills/ponytail/sentinel"
+collision_output="$(mise exec skills:ponytail@v4.8.3 -- true 2>&1)"
+if ! grep -q "Refusing to replace non-symlink skill destination" <<<"${collision_output}"; then
+    echo "activation did not report the destination collision" >&2
+    printf '%s\n' "${collision_output}" >&2
+    exit 1
+fi
+test "$(cat "${HOME}/.agents/skills/ponytail/sentinel")" = "keep"
+test ! -e "${CODEX_HOME}/skills/ponytail"
+test ! -L "${CODEX_HOME}/skills/ponytail"
+rm -rf "${HOME}/.agents/skills/ponytail"
+
+assert_links() {
+    local expected="$1"
+    test "$(readlink "${CODEX_HOME}/skills/ponytail")" = "${expected}"
+    test "$(readlink "${CLAUDE_CONFIG_DIR}/skills/ponytail")" = "${expected}"
+    test "$(readlink "${HOME}/.agents/skills/ponytail")" = "${expected}"
+    test "$(readlink "${HOME}/.pi/agent/skills/ponytail")" = "${expected}"
+    test "$(readlink "${HOME}/.cursor/skills/ponytail")" = "${expected}"
+}
+
+mise exec skills:ponytail@v4.8.3 -- true
+assert_links "${old_path}"
+mise exec skills:ponytail@v4.8.4 -- true
+assert_links "${new_path}"
+
+mise install agents:pi@0.80.7
+mise exec agents:pi@0.80.7 skills:ponytail@v4.8.3 -- pi --version
+assert_links "${old_path}"
 
 echo "live smoke: ok"

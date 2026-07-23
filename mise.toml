@@ -9,7 +9,7 @@ stylua = "latest"
 
 [tasks.format]
 description = "Format Lua scripts"
-run = "stylua metadata.lua hooks/ tests/"
+run = "stylua plugins/"
 
 [tasks.lint]
 description = "Lint Lua scripts and GitHub Actions using hk"

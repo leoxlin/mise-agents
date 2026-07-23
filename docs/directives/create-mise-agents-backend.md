@@ -39,7 +39,7 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 
 ### Task 1: Adopt and minimize the official template
 **Load:** `/tmp/mise-backend-plugin-template` at `8b8583a677235c7be3bcfc8ff047f3dec4687b2a`; `gnosis://mise-agents/purpose.md`; `gnosis://core/procedures/development/implementing-directive.md`.
-**Files:** create `.github/workflows/ci.yml`, `.luarc.json`, `LICENSE`, `README.md`, `hk.pkl`, `hooks/backend_exec_env.lua`, `hooks/backend_install.lua`, `hooks/backend_list_versions.lua`, `metadata.lua`, `mise-tasks/test`, `mise.toml`, `stylua.toml`, `types/mise-plugin.lua`.
+**Files:** create `.github/workflows/ci.yml`, `.luarc.json`, `LICENSE`, `README.md`, `hk.pkl`, `plugins/agents/hooks/backend_exec_env.lua`, `plugins/agents/hooks/backend_install.lua`, `plugins/agents/hooks/backend_list_versions.lua`, `plugins/agents/metadata.lua`, `mise-tasks/test`, `mise.toml`, `stylua.toml`, `types/mise-plugin.lua`.
 **Interfaces:** preserve the template's `PLUGIN:BackendListVersions(ctx)`, `PLUGIN:BackendInstall(ctx)`, and `PLUGIN:BackendExecEnv(ctx)` hook signatures.
 
 - [ ] Copy every non-`.git` template file, retain the template tooling/types, and replace metadata with backend name `agents`, version `0.1.0`, author `mise-agents contributors`, MIT license, and no invented homepage.
@@ -50,23 +50,23 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 
 ### Task 2: Add a failing hook contract check
 **Load:** `types/mise-plugin.lua`; the three hook files; `gnosis://core/procedures/development/implementing-directive.md#step-3---implementing-tasks`.
-**Files:** create `tests/hooks.lua`; modify `mise.toml` test task only if needed.
+**Files:** create `plugins/agents/tests/hooks.lua`; modify `mise.toml` test task only if needed.
 **Interfaces:** test the public hook results and stub only mise-provided modules.
 
-- [ ] Create `tests/hooks.lua` with plain Lua assertions that load each hook into a fresh `PLUGIN`, stub `cmd/http/json/file/archiver`, assert known/unknown tool routing, npm install prefix/version quoting, Cursor URL/platform/archive handling, and npm/Cursor PATH results.
-- [ ] Run `lua tests/hooks.lua`; expect failure because the placeholder hooks do not satisfy the contract (red).
+- [ ] Create `plugins/agents/tests/hooks.lua` with plain Lua assertions that load each hook into a fresh `PLUGIN`, stub `cmd/http/json/file/archiver`, assert known/unknown tool routing, npm install prefix/version quoting, Cursor URL/platform/archive handling, and npm/Cursor PATH results.
+- [ ] Run `(cd plugins/agents && lua tests/hooks.lua)`; expect failure because the placeholder hooks do not satisfy the contract (red).
 - [ ] Commit: `test: define agents backend contract`.
 
 ### Task 3: Implement version listing, installation, and environments
-**Load:** `tests/hooks.lua`; `hooks/*.lua`; official npm metadata for `@openai/codex`, `@anthropic-ai/claude-code`, `@moonshot-ai/kimi-code`, and `@earendil-works/pi-coding-agent`; Cursor installer/archive observed 2026-07-13.
-**Files:** modify `hooks/backend_list_versions.lua`, `hooks/backend_install.lua`, `hooks/backend_exec_env.lua`.
+**Load:** `plugins/agents/tests/hooks.lua`; `plugins/agents/hooks/*.lua`; official npm metadata for `@openai/codex`, `@anthropic-ai/claude-code`, `@moonshot-ai/kimi-code`, and `@earendil-works/pi-coding-agent`; Cursor installer/archive observed 2026-07-13.
+**Files:** modify `plugins/agents/hooks/backend_list_versions.lua`, `plugins/agents/hooks/backend_install.lua`, `plugins/agents/hooks/backend_exec_env.lua`.
 **Interfaces:** `BackendListVersions -> {versions=string[]}`; `BackendInstall -> {}`; `BackendExecEnv -> {env_vars={{key="PATH",value=string}}}`.
 
 - [ ] In list versions, use a fixed npm package map and `npm view <package> versions --json`; decode the array, error on empty output, and return it unchanged. For Cursor, GET `https://cursor.com/install`, require status 200, extract the build ID from `downloads.cursor.com/lab/<build>/`, and return that single immutable build.
 - [ ] In install, validate required fields and version characters, quote shell arguments, and use `npm install --ignore-scripts=false --prefix <install_path> <package>@<version>` for npm tools. For Cursor, map runtime OS/arch, download `https://downloads.cursor.com/lab/<version>/<os>/<arch>/agent-cli-package.tar.gz`, decompress under `install_path`, and symlink `dist-package/cursor-agent` to `dist-package/agent`.
 - [ ] In exec env, return npm's `node_modules/.bin` for mapped tools and Cursor's `dist-package` for Cursor; reject unsupported names consistently.
-- [ ] Run `lua tests/hooks.lua`; expect all assertions and the final success line (green).
-- [ ] Run `stylua metadata.lua hooks/ tests/`; expect exit 0, then rerun `lua tests/hooks.lua`; expect green after refactor.
+- [ ] Run `(cd plugins/agents && lua tests/hooks.lua)`; expect all assertions and the final success line (green).
+- [ ] Run `stylua plugins/agents`; expect exit 0, then rerun `(cd plugins/agents && lua tests/hooks.lua)`; expect green after refactor.
 - [ ] Commit: `feat: manage agents with mise`.
 
 ### Task 4: Add live smoke coverage and documentation
@@ -74,7 +74,7 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 **Files:** modify `mise-tasks/test`, `README.md`.
 **Interfaces:** developer commands `mise run test`, `mise run lint`, and `mise run ci`; user syntax `agents:<tool>@<version>`.
 
-- [ ] Make `mise run test` first run `lua tests/hooks.lua`, then use temporary `MISE_DATA_DIR`, `MISE_CACHE_DIR`, and `MISE_STATE_DIR` locations to link `agents` without changing the user's plugin/cache state, verify `mise ls-remote agents:pi` is non-empty, install `agents:pi@latest`, and run `mise exec agents:pi@latest -- pi --version`.
+- [ ] Make `mise run test` first run both plugins' hook tests, then use temporary `MISE_DATA_DIR`, `MISE_CACHE_DIR`, and `MISE_STATE_DIR` locations to link both plugins without changing the user's plugin/cache state, install fixed Pi and Ponytail versions, and run Pi with the selected skill.
 - [ ] Document installation/linking, five tool IDs, package/source mapping, examples, npm/Node prerequisites, Cursor target support and current-only remote listing, and development checks.
 - [ ] Run `mise run test`; expect unit success, a non-empty Pi version list, successful installation, and version output.
 - [ ] Commit: `docs: document agent workflows`.
@@ -93,9 +93,9 @@ Deliver a working `agents` backend plugin, based on `jdx/mise-backend-plugin-tem
 # Acceptance criteria
 
 - The repository is recognizably based on the requested official template revision and contains no template placeholders — inspect copied tooling files and run `rg '<BACKEND>|<GITHUB_USER>|<TEST_TOOL>' --glob '!docs/directives/**'`; expect no matches.
-- `agents:codex`, `agents:claude`, `agents:kimi`, and `agents:pi` list and install versions from their fixed official npm package mappings — run `lua tests/hooks.lua` and `mise ls-remote agents:pi`; expect green assertions and non-empty versions.
-- `agents:cursor` resolves Cursor's current immutable build and constructs the official target-specific archive install without modifying the user's home directory — run `lua tests/hooks.lua`; expect Cursor version, URL, extraction, alias, and PATH assertions to pass.
-- Unknown tools and unsafe versions fail before command/download execution — run `lua tests/hooks.lua`; expect rejection assertions with zero side effects.
+- `agents:codex`, `agents:claude`, `agents:kimi`, and `agents:pi` list and install versions from their fixed official npm package mappings — run `(cd plugins/agents && lua tests/hooks.lua)` and `mise ls-remote agents:pi`; expect green assertions and non-empty versions.
+- `agents:cursor` resolves Cursor's current immutable build and constructs the official target-specific archive install without modifying the user's home directory — run `(cd plugins/agents && lua tests/hooks.lua)`; expect Cursor version, URL, extraction, alias, and PATH assertions to pass.
+- Unknown tools and unsafe versions fail before command/download execution — run `(cd plugins/agents && lua tests/hooks.lua)`; expect rejection assertions with zero side effects.
 - Documentation enables a new user to install all five managed agents without consulting source — inspect `README.md` for prerequisites, mapping, examples, and limitations.
 - All repository and vault checks are clean — run `mise run ci`, `gnosis validate`, and `git diff --check`; expect exit 0.
 

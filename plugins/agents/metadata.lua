@@ -4,6 +4,7 @@ PLUGIN = { -- luacheck: ignore
     description = "Manage versioned coding agents with mise",
     author = "mise-agents contributors",
     license = "MIT",
+    homepage = "https://github.com/leoxlin/mise-agents/tree/main/plugins/agents",
     notes = {
         "npm is required for Codex, Claude Code, Kimi Code, and Pi installations",
     },
