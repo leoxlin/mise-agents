@@ -99,7 +99,7 @@ mise exec skills:find-skills@v1.5.20 -- true
 assert_links "${new_path}" "find-skills v1.5.20 activation"
 
 mise install agents:pi@0.80.7
-mise exec agents:pi@0.80.7 skills:find-skills@v1.5.19 -- pi --version
-assert_links "${old_path}" "combined Pi and find-skills v1.5.19 activation"
+mise exec agents:pi@0.80.7 skills:find-skills@v1.5.20 -- pi --version
+assert_links "${new_path}" "combined Pi and find-skills v1.5.20 activation"
 
 echo "live smoke: ok"
