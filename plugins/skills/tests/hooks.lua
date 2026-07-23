@@ -213,10 +213,24 @@ end, "did not stage")
 skill_file = assert(io.open(tmp .. "/.agents/skills/ponytail/SKILL.md", "w"))
 skill_file:write("---\nname: ponytail\n---\n")
 skill_file:close()
-package.loaded.cmd = actual_cmd
 local home = tmp .. "/home"
 local codex_home = tmp .. "/codex"
 local claude_home = tmp .. "/claude"
+local cache_root = tmp .. "/cache"
+local cache_bucket = tmp:match("/([^/]+)/[^/]+$")
+local stale_cache = cache_root .. "/" .. cache_bucket .. "/v0.9.0/exec_env_test.msgpack.z"
+run("mkdir -p " .. shell_quote(stale_cache:match("^(.*)/[^/]+$")))
+local cache_file = assert(io.open(stale_cache, "w"))
+cache_file:write("stale")
+cache_file:close()
+package.loaded.cmd = {
+    exec = function(command, options)
+        if command == "mise cache path" then
+            return cache_root .. "\n"
+        end
+        return actual_cmd.exec(command, options)
+    end,
+}
 test_env = { HOME = home, CODEX_HOME = codex_home, CLAUDE_CONFIG_DIR = claude_home }
 local original_getenv = os.getenv
 os.getenv = function(name)
@@ -257,6 +271,7 @@ local result = env_hook:BackendExecEnv({
 })
 assert_equal(#result.env_vars, 0)
 assert_equal(#symlink_calls, 4)
+assert(not actual_file.exists(stale_cache))
 for _, destination in ipairs({
     codex_home .. "/skills/ponytail",
     claude_home .. "/skills/ponytail",

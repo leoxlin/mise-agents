@@ -20,6 +20,18 @@ local function inspect_link(path)
     return state, target
 end
 
+local function clear_exec_env_caches(ctx)
+    local cache_root = require("cmd").exec("mise cache path"):match("^%s*(.-)%s*$")
+    local cache_bucket = ctx.install_path:match("/([^/]+)/[^/]+$")
+    if cache_root ~= "" and cache_bucket then
+        local path = require("file").join_path(cache_root, cache_bucket)
+        local quote = common.shell_quote(path)
+        require("cmd").exec(
+            "if [ -d " .. quote .. " ]; then find " .. quote .. " -type f -name 'exec_env_*.msgpack.z' -delete; fi"
+        )
+    end
+end
+
 --- @param ctx BackendExecEnvCtx
 --- @return BackendExecEnvResult
 function PLUGIN:BackendExecEnv(ctx)
@@ -58,8 +70,6 @@ function PLUGIN:BackendExecEnv(ctx)
             file.symlink(source, destination)
         end
     end
-    -- mise caches BackendExecEnv by install-directory mtime; a future mtime keeps activation side effects live.
-    local tomorrow = os.date("%Y%m%d%H%M.%S", os.time() + 86400)
-    require("cmd").exec("touch -t " .. tomorrow .. " " .. common.shell_quote(ctx.install_path))
+    clear_exec_env_caches(ctx)
     return { env_vars = {} }
 end
