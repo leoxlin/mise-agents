@@ -33,6 +33,10 @@ mkdir -p \
 printf '\n' >"${MISE_GLOBAL_CONFIG_FILE}"
 
 printf '%s\n' \
+    '[plugins]' \
+    '"vfox:agents" = "git::https://github.com/leoxlin/mise-agents.git//plugins/agents"' \
+    '"vfox:skills" = "git::https://github.com/leoxlin/mise-agents.git//plugins/skills"' \
+    '' \
     '[tools]' \
     'node = "24"' \
     '"agents:pi" = "0.80.7"' \

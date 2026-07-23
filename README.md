@@ -9,8 +9,8 @@ Install either or both plugins directly from their repository subdirectories:
 
 ```toml
 [plugins]
-agents = "git::https://github.com/leoxlin/mise-agents.git//plugins/agents"
-skills = "git::https://github.com/leoxlin/mise-agents.git//plugins/skills"
+"vfox:agents" = "git::https://github.com/leoxlin/mise-agents.git//plugins/agents"
+"vfox:skills" = "git::https://github.com/leoxlin/mise-agents.git//plugins/skills"
 
 [tools]
 node = "24"
@@ -22,6 +22,7 @@ node = "24"
 ```
 
 Both plugins require Node.js and npm. The skills plugin also requires `git` and supports Linux and macOS.
+The explicit `vfox:` keys are required for `git::` plugin sources on mise 2026.6.14.
 
 ## Agents plugin
 
