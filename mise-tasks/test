@@ -73,20 +73,33 @@ rm -rf "${HOME}/.agents/skills/ponytail"
 
 assert_links() {
     local expected="$1"
-    test "$(readlink "${CODEX_HOME}/skills/ponytail")" = "${expected}"
-    test "$(readlink "${CLAUDE_CONFIG_DIR}/skills/ponytail")" = "${expected}"
-    test "$(readlink "${HOME}/.agents/skills/ponytail")" = "${expected}"
-    test "$(readlink "${HOME}/.pi/agent/skills/ponytail")" = "${expected}"
-    test "$(readlink "${HOME}/.cursor/skills/ponytail")" = "${expected}"
+    local phase="$2"
+    local failed=0
+    local destination actual
+
+    printf 'links after %s (expected %s):\n' "${phase}" "${expected}"
+    for destination in \
+        "${CODEX_HOME}/skills/ponytail" \
+        "${CLAUDE_CONFIG_DIR}/skills/ponytail" \
+        "${HOME}/.agents/skills/ponytail" \
+        "${HOME}/.pi/agent/skills/ponytail" \
+        "${HOME}/.cursor/skills/ponytail"; do
+        actual="$(readlink "${destination}" || true)"
+        printf '  %s -> %s\n' "${destination}" "${actual:-<missing>}"
+        if [[ "${actual}" != "${expected}" ]]; then
+            failed=1
+        fi
+    done
+    return "${failed}"
 }
 
 mise exec skills:ponytail@v4.8.3 -- true
-assert_links "${old_path}"
+assert_links "${old_path}" "ponytail v4.8.3 activation"
 mise exec skills:ponytail@v4.8.4 -- true
-assert_links "${new_path}"
+assert_links "${new_path}" "ponytail v4.8.4 activation"
 
 mise install agents:pi@0.80.7
 mise exec agents:pi@0.80.7 skills:ponytail@v4.8.3 -- pi --version
-assert_links "${old_path}"
+assert_links "${old_path}" "combined Pi and ponytail v4.8.3 activation"
 
 echo "live smoke: ok"
