@@ -61,7 +61,7 @@ local function assert_equal(actual, expected)
     assert(actual == expected, ("expected %q, got %q"):format(tostring(expected), tostring(actual)))
 end
 
-for _, valid in ipairs({ "a", "ponytail", "skill-2", string.rep("a", 64) }) do
+for _, valid in ipairs({ "a", "find-skills", "skill-2", string.rep("a", 64) }) do
     assert_equal(common.validate_name(valid), valid)
 end
 for _, invalid in ipairs({ "", "-bad", "bad-", "Bad", "bad_name", "bad--name", string.rep("a", 65) }) do
@@ -70,13 +70,10 @@ for _, invalid in ipairs({ "", "-bad", "bad-", "Bad", "bad_name", "bad--name", s
     end, "Invalid skill name")
 end
 
+assert_equal(common.normalize_source({ source = "vercel-labs/skills" }), "https://github.com/vercel-labs/skills.git")
 assert_equal(
-    common.normalize_source({ source = "DietrichGebert/ponytail" }),
-    "https://github.com/DietrichGebert/ponytail.git"
-)
-assert_equal(
-    common.normalize_source({ source = "https://github.com/DietrichGebert/ponytail" }),
-    "https://github.com/DietrichGebert/ponytail.git"
+    common.normalize_source({ source = "https://github.com/vercel-labs/skills" }),
+    "https://github.com/vercel-labs/skills.git"
 )
 for _, source in ipairs({
     "https://gitlab.example.com/group/project.git",
@@ -143,11 +140,11 @@ package.loaded.cmd = {
 }
 local list = load_hook("hooks/backend_list_versions.lua")
 local versions = list:BackendListVersions({
-    tool = "ponytail",
-    options = { source = "DietrichGebert/ponytail" },
+    tool = "find-skills",
+    options = { source = "vercel-labs/skills" },
 }).versions
 assert_equal(table.concat(versions, ","), "v1.0.0-alpha.2,v1.0.0-alpha.10,v1.0.0,v1.0.0+build.1,v1.0.0+build.2,v2.0.0")
-assert_equal(commands[1], "git ls-remote --tags --refs 'https://github.com/DietrichGebert/ponytail.git'")
+assert_equal(commands[1], "git ls-remote --tags --refs 'https://github.com/vercel-labs/skills.git'")
 
 package.loaded.cmd = {
     exec = function()
@@ -155,7 +152,7 @@ package.loaded.cmd = {
     end,
 }
 expect_error(function()
-    list:BackendListVersions({ tool = "ponytail", options = { source = "owner/repo" } })
+    list:BackendListVersions({ tool = "find-skills", options = { source = "owner/repo" } })
 end, "No SemVer tags")
 package.loaded.cmd = {
     exec = function()
@@ -163,14 +160,14 @@ package.loaded.cmd = {
     end,
 }
 expect_error(function()
-    list:BackendListVersions({ tool = "ponytail", options = { source = "owner/repo" } })
+    list:BackendListVersions({ tool = "find-skills", options = { source = "owner/repo" } })
 end, "Failed to list Git tags")
 
 local tmp = os.tmpname()
 os.remove(tmp)
-run("mkdir -p " .. shell_quote(tmp .. "/.agents/skills/ponytail"))
-local skill_file = assert(io.open(tmp .. "/.agents/skills/ponytail/SKILL.md", "w"))
-skill_file:write("---\nname: ponytail\n---\n")
+run("mkdir -p " .. shell_quote(tmp .. "/.agents/skills/find-skills"))
+local skill_file = assert(io.open(tmp .. "/.agents/skills/find-skills/SKILL.md", "w"))
+skill_file:write("---\nname: find-skills\n---\n")
 skill_file:close()
 
 commands = {}
@@ -182,36 +179,36 @@ package.loaded.cmd = {
 }
 local install = load_hook("hooks/backend_install.lua")
 install:BackendInstall({
-    tool = "ponytail",
+    tool = "find-skills",
     version = "v1.0.0",
     install_path = tmp,
-    options = { source = "DietrichGebert/ponytail" },
+    options = { source = "vercel-labs/skills" },
 })
 assert_equal(
     commands[1].command,
-    "npx --yes skills add 'https://github.com/DietrichGebert/ponytail.git#v1.0.0' --skill 'ponytail' --agent 'universal' --copy --yes"
+    "npx --yes skills add 'https://github.com/vercel-labs/skills.git#v1.0.0' --skill 'find-skills' --agent 'universal' --copy --yes"
 )
 assert_equal(commands[1].options.cwd, tmp)
 expect_error(function()
     install:BackendInstall({
-        tool = "ponytail",
+        tool = "find-skills",
         version = "main",
         install_path = tmp,
         options = { source = "owner/repo" },
     })
 end, "Invalid SemVer tag")
-run("rm -f " .. shell_quote(tmp .. "/.agents/skills/ponytail/SKILL.md"))
+run("rm -f " .. shell_quote(tmp .. "/.agents/skills/find-skills/SKILL.md"))
 expect_error(function()
     install:BackendInstall({
-        tool = "ponytail",
+        tool = "find-skills",
         version = "v1.0.0",
         install_path = tmp,
         options = { source = "owner/repo" },
     })
 end, "did not stage")
 
-skill_file = assert(io.open(tmp .. "/.agents/skills/ponytail/SKILL.md", "w"))
-skill_file:write("---\nname: ponytail\n---\n")
+skill_file = assert(io.open(tmp .. "/.agents/skills/find-skills/SKILL.md", "w"))
+skill_file:write("---\nname: find-skills\n---\n")
 skill_file:close()
 local home = tmp .. "/home"
 local codex_home = tmp .. "/codex"
@@ -237,34 +234,39 @@ os.getenv = function(name)
     return test_env[name]
 end
 run("mkdir -p " .. shell_quote(codex_home .. "/skills"))
-run("ln -s " .. shell_quote(tmp .. "/.agents/skills/ponytail") .. " " .. shell_quote(codex_home .. "/skills/ponytail"))
-run("mkdir -p " .. shell_quote(home .. "/.agents/skills/ponytail"))
-local sentinel = assert(io.open(home .. "/.agents/skills/ponytail/sentinel", "w"))
+run(
+    "ln -s "
+        .. shell_quote(tmp .. "/.agents/skills/find-skills")
+        .. " "
+        .. shell_quote(codex_home .. "/skills/find-skills")
+)
+run("mkdir -p " .. shell_quote(home .. "/.agents/skills/find-skills"))
+local sentinel = assert(io.open(home .. "/.agents/skills/find-skills/sentinel", "w"))
 sentinel:write("keep")
 sentinel:close()
 run("mkdir -p " .. shell_quote(home .. "/.cursor/skills"))
-run("ln -s " .. shell_quote(tmp .. "/missing") .. " " .. shell_quote(home .. "/.cursor/skills/ponytail"))
+run("ln -s " .. shell_quote(tmp .. "/missing") .. " " .. shell_quote(home .. "/.cursor/skills/find-skills"))
 
 local env_hook = load_hook("hooks/backend_exec_env.lua")
 expect_error(function()
     env_hook:BackendExecEnv({
-        tool = "ponytail",
+        tool = "find-skills",
         version = "v1.0.0",
         install_path = tmp,
         options = { source = "owner/repo" },
     })
 end, "Refusing to replace non%-symlink")
-assert(actual_file.exists(home .. "/.agents/skills/ponytail/sentinel"))
-assert(not actual_file.exists(claude_home .. "/skills/ponytail"))
+assert(actual_file.exists(home .. "/.agents/skills/find-skills/sentinel"))
+assert(not actual_file.exists(claude_home .. "/skills/find-skills"))
 assert_equal(
-    run("readlink " .. shell_quote(codex_home .. "/skills/ponytail")):gsub("%s+$", ""),
-    tmp .. "/.agents/skills/ponytail"
+    run("readlink " .. shell_quote(codex_home .. "/skills/find-skills")):gsub("%s+$", ""),
+    tmp .. "/.agents/skills/find-skills"
 )
 
-run("rm -rf " .. shell_quote(home .. "/.agents/skills/ponytail"))
+run("rm -rf " .. shell_quote(home .. "/.agents/skills/find-skills"))
 symlink_calls = {}
 local result = env_hook:BackendExecEnv({
-    tool = "ponytail",
+    tool = "find-skills",
     version = "v1.0.0",
     install_path = tmp,
     options = { source = "owner/repo" },
@@ -273,38 +275,38 @@ assert_equal(#result.env_vars, 0)
 assert_equal(#symlink_calls, 4)
 assert(not actual_file.exists(stale_cache))
 for _, destination in ipairs({
-    codex_home .. "/skills/ponytail",
-    claude_home .. "/skills/ponytail",
-    home .. "/.agents/skills/ponytail",
-    home .. "/.pi/agent/skills/ponytail",
-    home .. "/.cursor/skills/ponytail",
+    codex_home .. "/skills/find-skills",
+    claude_home .. "/skills/find-skills",
+    home .. "/.agents/skills/find-skills",
+    home .. "/.pi/agent/skills/find-skills",
+    home .. "/.cursor/skills/find-skills",
 }) do
-    assert_equal(run("readlink " .. shell_quote(destination)):gsub("%s+$", ""), tmp .. "/.agents/skills/ponytail")
+    assert_equal(run("readlink " .. shell_quote(destination)):gsub("%s+$", ""), tmp .. "/.agents/skills/find-skills")
 end
 
 local default_home = tmp .. "/default-home"
 test_env = { HOME = default_home }
 symlink_calls = {}
 env_hook:BackendExecEnv({
-    tool = "ponytail",
+    tool = "find-skills",
     version = "v1.0.0",
     install_path = tmp,
     options = { source = "owner/repo" },
 })
 assert_equal(#symlink_calls, 5)
 for _, destination in ipairs({
-    default_home .. "/.codex/skills/ponytail",
-    default_home .. "/.claude/skills/ponytail",
-    default_home .. "/.agents/skills/ponytail",
-    default_home .. "/.pi/agent/skills/ponytail",
-    default_home .. "/.cursor/skills/ponytail",
+    default_home .. "/.codex/skills/find-skills",
+    default_home .. "/.claude/skills/find-skills",
+    default_home .. "/.agents/skills/find-skills",
+    default_home .. "/.pi/agent/skills/find-skills",
+    default_home .. "/.cursor/skills/find-skills",
 }) do
-    assert_equal(run("readlink " .. shell_quote(destination)):gsub("%s+$", ""), tmp .. "/.agents/skills/ponytail")
+    assert_equal(run("readlink " .. shell_quote(destination)):gsub("%s+$", ""), tmp .. "/.agents/skills/find-skills")
 end
 
 expect_error(function()
     env_hook:BackendExecEnv({
-        tool = "ponytail",
+        tool = "find-skills",
         version = "v1.0.0",
         install_path = tmp .. "/missing-install",
         options = { source = "owner/repo" },

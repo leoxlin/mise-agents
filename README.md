@@ -15,9 +15,9 @@ Install either or both plugins directly from their repository subdirectories:
 [tools]
 node = "24"
 "agents:pi" = "latest"
-"skills:ponytail" = {
-  version = "v4.8.4",
-  source = "DietrichGebert/ponytail",
+"skills:find-skills" = {
+  version = "v1.5.20",
+  source = "vercel-labs/skills",
 }
 ```
 
@@ -64,18 +64,18 @@ Skill names must be 1–64 lowercase letters, digits, or internal single hyphens
 repository tags conforming to SemVer 2.0, with an optional `v` prefix. Non-SemVer tags are ignored.
 
 ```sh
-mise ls-remote skills:ponytail
-mise install skills:ponytail@v4.8.4
-mise use skills:ponytail@v4.8.4
-mise upgrade skills:ponytail
+mise ls-remote skills:find-skills
+mise install skills:find-skills@v1.5.20
+mise use skills:find-skills@v1.5.20
+mise upgrade skills:find-skills
 ```
 
 If `source` changes while the selected version stays the same, force a reinstall because mise keys installations by
 skill name and version:
 
 ```sh
-mise uninstall skills:ponytail@v4.8.4
-mise install skills:ponytail@v4.8.4
+mise uninstall skills:find-skills@v1.5.20
+mise install skills:find-skills@v1.5.20
 ```
 
 ### Activation and lifecycle
@@ -98,7 +98,7 @@ evaluated mise environment wins. Mise has no backend deactivate/uninstall hook, 
 and `mise uninstall` can leave broken links. To unlink a skill manually:
 
 ```sh
-skill=ponytail
+skill=find-skills
 test ! -L "${CODEX_HOME:-$HOME/.codex}/skills/${skill}" || rm "${CODEX_HOME:-$HOME/.codex}/skills/${skill}"
 test ! -L "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/${skill}" || rm "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/${skill}"
 test ! -L "$HOME/.agents/skills/${skill}" || rm "$HOME/.agents/skills/${skill}"

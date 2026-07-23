@@ -40,36 +40,36 @@ printf '%s\n' \
     '[tools]' \
     'node = "24"' \
     '"agents:pi" = "0.80.7"' \
-    '"skills:ponytail" = { version = "v4.8.4", source = "DietrichGebert/ponytail" }' \
+    '"skills:find-skills" = { version = "v1.5.20", source = "vercel-labs/skills" }' \
     >"${tmp}/project/mise.toml"
 cd "${tmp}/project"
 
 mise plugin link --force agents "${root}/plugins/agents"
 mise plugin link --force skills "${root}/plugins/skills"
 
-mise install skills:ponytail@v4.8.3
-mise install skills:ponytail@v4.8.4
-old_path="$(mise where skills:ponytail@v4.8.3)/.agents/skills/ponytail"
-new_path="$(mise where skills:ponytail@v4.8.4)/.agents/skills/ponytail"
+mise install skills:find-skills@v1.5.19
+mise install skills:find-skills@v1.5.20
+old_path="$(mise where skills:find-skills@v1.5.19)/.agents/skills/find-skills"
+new_path="$(mise where skills:find-skills@v1.5.20)/.agents/skills/find-skills"
 
 rm -f \
-    "${CODEX_HOME}/skills/ponytail" \
-    "${CLAUDE_CONFIG_DIR}/skills/ponytail" \
-    "${HOME}/.agents/skills/ponytail" \
-    "${HOME}/.pi/agent/skills/ponytail" \
-    "${HOME}/.cursor/skills/ponytail"
-mkdir -p "${HOME}/.agents/skills/ponytail"
-printf 'keep\n' >"${HOME}/.agents/skills/ponytail/sentinel"
-collision_output="$(mise exec skills:ponytail@v4.8.3 -- true 2>&1)"
+    "${CODEX_HOME}/skills/find-skills" \
+    "${CLAUDE_CONFIG_DIR}/skills/find-skills" \
+    "${HOME}/.agents/skills/find-skills" \
+    "${HOME}/.pi/agent/skills/find-skills" \
+    "${HOME}/.cursor/skills/find-skills"
+mkdir -p "${HOME}/.agents/skills/find-skills"
+printf 'keep\n' >"${HOME}/.agents/skills/find-skills/sentinel"
+collision_output="$(mise exec skills:find-skills@v1.5.19 -- true 2>&1)"
 if ! grep -q "Refusing to replace non-symlink skill destination" <<<"${collision_output}"; then
     echo "activation did not report the destination collision" >&2
     printf '%s\n' "${collision_output}" >&2
     exit 1
 fi
-test "$(cat "${HOME}/.agents/skills/ponytail/sentinel")" = "keep"
-test ! -e "${CODEX_HOME}/skills/ponytail"
-test ! -L "${CODEX_HOME}/skills/ponytail"
-rm -rf "${HOME}/.agents/skills/ponytail"
+test "$(cat "${HOME}/.agents/skills/find-skills/sentinel")" = "keep"
+test ! -e "${CODEX_HOME}/skills/find-skills"
+test ! -L "${CODEX_HOME}/skills/find-skills"
+rm -rf "${HOME}/.agents/skills/find-skills"
 
 assert_links() {
     local expected="$1"
@@ -79,11 +79,11 @@ assert_links() {
 
     printf 'links after %s (expected %s):\n' "${phase}" "${expected}"
     for destination in \
-        "${CODEX_HOME}/skills/ponytail" \
-        "${CLAUDE_CONFIG_DIR}/skills/ponytail" \
-        "${HOME}/.agents/skills/ponytail" \
-        "${HOME}/.pi/agent/skills/ponytail" \
-        "${HOME}/.cursor/skills/ponytail"; do
+        "${CODEX_HOME}/skills/find-skills" \
+        "${CLAUDE_CONFIG_DIR}/skills/find-skills" \
+        "${HOME}/.agents/skills/find-skills" \
+        "${HOME}/.pi/agent/skills/find-skills" \
+        "${HOME}/.cursor/skills/find-skills"; do
         actual="$(readlink "${destination}" || true)"
         printf '  %s -> %s\n' "${destination}" "${actual:-<missing>}"
         if [[ "${actual}" != "${expected}" ]]; then
@@ -93,13 +93,13 @@ assert_links() {
     return "${failed}"
 }
 
-mise exec skills:ponytail@v4.8.3 -- true
-assert_links "${old_path}" "ponytail v4.8.3 activation"
-mise exec skills:ponytail@v4.8.4 -- true
-assert_links "${new_path}" "ponytail v4.8.4 activation"
+mise exec skills:find-skills@v1.5.19 -- true
+assert_links "${old_path}" "find-skills v1.5.19 activation"
+mise exec skills:find-skills@v1.5.20 -- true
+assert_links "${new_path}" "find-skills v1.5.20 activation"
 
 mise install agents:pi@0.80.7
-mise exec agents:pi@0.80.7 skills:ponytail@v4.8.3 -- pi --version
-assert_links "${old_path}" "combined Pi and ponytail v4.8.3 activation"
+mise exec agents:pi@0.80.7 skills:find-skills@v1.5.19 -- pi --version
+assert_links "${old_path}" "combined Pi and find-skills v1.5.19 activation"
 
 echo "live smoke: ok"
